@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⭐ 미션 달성 앱</title>
+<style>
+:root {
+  --amber:#F59E0B;--amber-l:#FEF3C7;--amber-d:#D97706;
+  --teal:#0D9488;--teal-l:#CCFBF1;--teal-d:#0F766E;
+  --coral:#EF4444;--coral-l:#FEE2E2;
+  --purple:#7C3AED;--purple-l:#EDE9FE;--purple-d:#6D28D9;
+  --green:#22C55E;--green-l:#DCFCE7;
+  --bg:#FFFBF0;--card:#FFFFFF;--text:#1C1917;--muted:#78716C;--border:#E7E5E4;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;position:relative;}
+button{cursor:pointer;font-family:inherit;}
+
+/* NAV */
+.nav{background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 12px;position:sticky;top:0;z-index:50;}
+.nav-logo{font-size:18px;font-weight:700;color:var(--amber-d);}
+.nav-tabs{display:flex;gap:2px;}
+.ntab{padding:6px 10px;border-radius:16px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--muted);transition:.15s;}
+.ntab.on{background:var(--amber-l);color:var(--amber-d);}
+.ntab:hover:not(.on){background:#f5f5f4;}
+
+/* SCREENS */
+.screen{display:none;padding:0 0 80px;}
+.screen.on{display:block;}
+
+/* POINTS HERO */
+.hero{background:linear-gradient(135deg,#F59E0B 0%,#F97316 100%);color:#fff;padding:20px 16px 24px;text-align:center;}
+.hero-pts{font-size:48px;font-weight:800;line-height:1;letter-spacing:-1px;}
+.hero-label{font-size:13px;opacity:.85;margin-top:4px;}
+.hero-badges{display:flex;justify-content:center;gap:8px;margin-top:14px;}
+.hbadge{background:rgba(255,255,255,.2);border-radius:12px;padding:6px 12px;font-size:11px;font-weight:600;}
+
+/* SECTION */
+.sec{padding:16px;}
+.sec-title{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+
+/* GOAL ITEM */
+.goal-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px;transition:.2s;position:relative;}
+.goal-card.done{background:var(--teal-l);border-color:#99f6e4;}
+.goal-icon{font-size:22px;width:36px;text-align:center;}
+.goal-text{flex:1;}
+.goal-name{font-size:15px;font-weight:600;}
+.goal-card.done .goal-name{text-decoration:line-through;color:var(--muted);}
+.goal-pts{font-size:11px;color:var(--muted);margin-top:2px;}
+.goal-check{width:32px;height:32px;border-radius:50%;border:2px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;transition:.15s;flex-shrink:0;}
+.goal-card.done .goal-check{background:var(--teal);border-color:var(--teal);color:#fff;}
+.goal-check:hover{border-color:var(--teal);}
+
+/* COMPLETE BANNER */
+.complete-banner{background:linear-gradient(135deg,var(--teal),#059669);color:#fff;border-radius:14px;padding:16px;text-align:center;margin:0 16px 16px;animation:popIn .4s ease;}
+.complete-banner h3{font-size:18px;font-weight:800;}
+.complete-banner p{font-size:13px;opacity:.9;margin-top:4px;}
+
+/* BONUS CARDS */
+.bonus-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px 16px;}
+.bonus-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;}
+.bonus-card.unlocked{border-color:var(--amber);background:var(--amber-l);}
+.bonus-card.done-bonus{border-color:#86efac;background:var(--green-l);}
+.bonus-num{font-size:20px;font-weight:800;color:var(--amber-d);}
+.bonus-card.done-bonus .bonus-num{color:#15803d;}
+.bonus-label{font-size:11px;color:var(--muted);margin-top:2px;}
+.bonus-prog{font-size:11px;font-weight:600;color:var(--muted);margin-top:4px;}
+
+/* REWARD SHOP */
+.shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px;}
+.reward-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;transition:.15s;}
+.reward-card:hover{border-color:var(--amber);}
+.reward-icon{font-size:32px;margin-bottom:6px;}
+.reward-name{font-size:13px;font-weight:700;}
+.reward-cost{font-size:12px;color:var(--amber-d);font-weight:600;margin:4px 0;}
+.buy-btn{background:var(--amber);color:#fff;border:none;border-radius:10px;padding:6px 14px;font-size:12px;font-weight:700;margin-top:4px;transition:.15s;}
+.buy-btn:hover{background:var(--amber-d);}
+.buy-btn:disabled{background:#e5e7eb;color:#9ca3af;cursor:not-allowed;}
+.empty-msg{text-align:center;color:var(--muted);font-size:14px;padding:40px 20px;}
+
+/* HISTORY */
+.hist-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+.hist-icon{font-size:18px;width:30px;text-align:center;}
+.hist-text{flex:1;font-size:13px;}
+.hist-pts{font-size:13px;font-weight:700;color:var(--teal);}
+
+/* PARENT AREA */
+.parent-section{padding:16px;}
+.card-block{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;}
+.card-block h3{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.input-row{display:flex;gap:8px;margin-bottom:8px;}
+input[type=text],input[type=number],select{flex:1;border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:14px;font-family:inherit;outline:none;background:#fff;color:var(--text);}
+input:focus,select:focus{border-color:var(--amber);}
+.add-btn{background:var(--amber);color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:700;}
+.add-btn:hover{background:var(--amber-d);}
+.tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.tag{background:var(--amber-l);color:var(--amber-d);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;}
+.tag-del{background:none;border:none;color:var(--amber-d);font-size:14px;padding:0;line-height:1;}
+.tag-del:hover{color:var(--coral);}
+
+/* TODAY GOAL BUILDER */
+.menu-select-list{max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;}
+.menu-sel-item{padding:10px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);cursor:pointer;font-size:14px;}
+.menu-sel-item:last-child{border-bottom:none;}
+.menu-sel-item:hover{background:#fafaf9;}
+.menu-sel-item input[type=checkbox]{accent-color:var(--amber);width:16px;height:16px;}
+.set-btn{background:var(--teal);color:#fff;border:none;border-radius:10px;padding:9px;font-size:13px;font-weight:700;width:100%;}
+.set-btn:hover{background:var(--teal-d);}
+
+/* REWARD MANAGE */
+.rw-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);}
+.rw-item:last-child{border-bottom:none;}
+.rw-del{background:var(--coral-l);color:var(--coral);border:none;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;}
+
+/* PIN MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:200;}
+.modal{background:#fff;border-radius:20px;padding:24px;width:300px;text-align:center;}
+.modal h2{font-size:18px;font-weight:800;margin-bottom:6px;}
+.modal p{font-size:13px;color:var(--muted);margin-bottom:16px;}
+.pin-dots{display:flex;justify-content:center;gap:10px;margin-bottom:16px;}
+.pin-dot{width:14px;height:14px;border-radius:50%;background:var(--border);}
+.pin-dot.filled{background:var(--amber);}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.pin-btn{background:#f5f5f4;border:none;border-radius:12px;padding:14px;font-size:20px;font-weight:700;transition:.1s;}
+.pin-btn:hover{background:var(--amber-l);}
+.pin-btn:active{transform:scale(.95);}
+.pin-err{color:var(--coral);font-size:13px;margin-top:8px;}
+.close-btn{background:none;border:none;color:var(--muted);font-size:13px;margin-top:12px;text-decoration:underline;}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1c1917;color:#fff;border-radius:12px;padding:10px 20px;font-size:13px;font-weight:600;z-index:300;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
+
+/* CONFETTI */
+.confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:400;overflow:hidden;}
+.cf{position:absolute;width:8px;height:8px;border-radius:2px;animation:fall 1.5s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+@keyframes popIn{from{transform:scale(.8);opacity:0;}to{transform:scale(1);opacity:1;}}
+@keyframes slideUp{from{transform:translateY(60px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
+
+/* CELEBRATION MODAL */
+.celeb-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:flex;align-items:center;justify-content:center;}
+.celeb-box{background:#fff;border-radius:28px;padding:32px 24px;width:320px;text-align:center;animation:slideUp .4s cubic-bezier(.22,1,.36,1);}
+.celeb-emoji{font-size:64px;line-height:1;margin-bottom:12px;animation:pulse 1s ease-in-out infinite;}
+.celeb-title{font-size:24px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;}
+.celeb-msg{font-size:15px;color:var(--muted);line-height:1.6;margin-bottom:8px;}
+.celeb-pts{display:inline-block;background:var(--amber-l);color:var(--amber-d);border-radius:14px;padding:6px 18px;font-size:16px;font-weight:800;margin-bottom:20px;}
+.celeb-close{background:linear-gradient(135deg,#F59E0B,#F97316);color:#fff;border:none;border-radius:16px;padding:13px 36px;font-size:16px;font-weight:800;width:100%;}
+/* ROUTINE DAY CHIPS */
+.day-chips{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0;}
+.day-chip{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;}
+.day-chip.on{background:var(--amber);border-color:var(--amber-d);color:#fff;}
+.routine-item{padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;}
+.routine-item:last-child{border-bottom:none;}
+.routine-days{display:flex;gap:3px;flex-wrap:wrap;margin-top:4px;}
+.rdchip{font-size:10px;font-weight:700;padding:2px 6px;border-radius:8px;background:var(--amber-l);color:var(--amber-d);}
+.rdchip.everyday{background:var(--teal-l);color:var(--teal-d);}
+/* AUTO BADGE */
+.auto-badge{display:inline-flex;align-items:center;gap:3px;background:var(--purple-l);color:var(--purple-d);border-radius:6px;padding:2px 6px;font-size:10px;font-weight:700;}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid var(--border);display:flex;z-index:100;}
+.bnav-btn{flex:1;padding:10px 4px 12px;display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:transparent;font-size:10px;font-weight:600;color:var(--muted);transition:.15s;}
+.bnav-btn.on{color:var(--amber-d);}
+.bnav-icon{font-size:22px;}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-logo">⭐ 미션 앱</div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <div id="navPoints" style="background:var(--amber-l);color:var(--amber-d);border-radius:12px;padding:4px 10px;font-size:13px;font-weight:700;"></div>
+    <button class="ntab" id="parentBtn" onclick="openParent()" style="background:var(--purple-l);color:var(--purple-d);border-radius:12px;padding:6px 10px;font-size:12px;font-weight:700;border:none;">⚙ 부모</button>
+  </div>
+</div>
+
+<!-- SCREENS -->
+<div id="screenMission" class="screen on">
+  <div class="hero">
+    <div class="hero-pts" id="heroPoints">0</div>
+    <div class="hero-label">총 보유 포인트</div>
+    <div class="hero-badges">
+      <div class="hbadge" id="todayBadge">오늘 0/0</div>
+      <div class="hbadge" id="weekBadge">이번 주 0/7</div>
+      <div class="hbadge" id="monthBadge">이번 달 0일</div>
+    </div>
+  </div>
+
+  <div id="completeBanner" style="display:none;"></div>
+
+  <div id="bonusSection" class="bonus-row">
+    <div class="bonus-card" id="weekBonus">
+      <div class="bonus-num">+300</div>
+      <div class="bonus-label">주간 보너스</div>
+      <div class="bonus-prog" id="weekProgText">0/7일</div>
+    </div>
+    <div class="bonus-card" id="monthBonus">
+      <div class="bonus-num">+1,000</div>
+      <div class="bonus-label">월간 보너스</div>
+      <div class="bonus-prog" id="monthProgText">0일 완료</div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">📋 오늘의 미션</div>
+    <div id="goalList"></div>
+  </div>
+</div>
+
+<div id="screenShop" class="screen">
+  <div style="padding:16px 16px 8px;">
+    <div style="background:var(--amber-l);border-radius:12px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:13px;color:var(--amber-d);font-weight:600;">사용 가능 포인트</span>
+      <span style="font-size:22px;font-weight:800;color:var(--amber-d);" id="shopPoints">0</span>
+    </div>
+  </div>
+  <div id="rewardGrid" class="shop-grid"></div>
+  <div class="sec">
+    <div class="sec-title">🛍 구매 내역</div>
+    <div id="purchaseHist"></div>
+  </div>
+</div>
+
+<div id="screenHistory" class="screen">
+  <div class="sec">
+    <div class="sec-title">📊 포인트 내역</div>
+    <div id="histList"></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="bnav-btn on" id="bn0" onclick="showTab(0)">
+    <span class="bnav-icon">🎯</span>오늘 미션
+  </button>
+  <button class="bnav-btn" id="bn1" onclick="showTab(1)">
+    <span class="bnav-icon">🏪</span>보상점
+  </button>
+  <button class="bnav-btn" id="bn2" onclick="showTab(2)">
+    <span class="bnav-icon">📈</span>기록
+  </button>
+</div>
+
+<!-- PARENT MODAL -->
+<div id="parentModal" class="modal-overlay" style="display:none;">
+  <div class="modal">
+    <h2>👨‍👩‍👧 부모 메뉴</h2>
+    <p>PIN 번호를 입력해주세요</p>
+    <div class="pin-dots" id="pinDots">
+      <div class="pin-dot"></div><div class="pin-dot"></div>
+      <div class="pin-dot"></div><div class="pin-dot"></div>
+    </div>
+    <div class="pin-grid">
+      <button class="pin-btn" onclick="pinInput('1')">1</button>
+      <button class="pin-btn" onclick="pinInput('2')">2</button>
+      <button class="pin-btn" onclick="pinInput('3')">3</button>
+      <button class="pin-btn" onclick="pinInput('4')">4</button>
+      <button class="pin-btn" onclick="pinInput('5')">5</button>
+      <button class="pin-btn" onclick="pinInput('6')">6</button>
+      <button class="pin-btn" onclick="pinInput('7')">7</button>
+      <button class="pin-btn" onclick="pinInput('8')">8</button>
+      <button class="pin-btn" onclick="pinInput('9')">9</button>
+      <button class="pin-btn" onclick="pinInput('del')" style="font-size:14px;">⌫</button>
+      <button class="pin-btn" onclick="pinInput('0')">0</button>
+      <button class="pin-btn" onclick="pinInput('ok')" style="background:var(--amber-l);color:var(--amber-d);">확인</button>
+    </div>
+    <div id="pinErr" class="pin-err"></div>
+    <button class="close-btn" onclick="closeModal('parentModal')">취소</button>
+  </div>
+</div>
+
+<!-- PARENT PANEL -->
+<div id="parentPanel" class="modal-overlay" style="display:none;align-items:flex-start;overflow-y:auto;">
+  <div style="background:#fff;width:100%;max-width:480px;min-height:100vh;padding-bottom:40px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--border);">
+      <h2 style="font-size:18px;font-weight:800;">⚙️ 부모 설정</h2>
+      <button onclick="closeModal('parentPanel')" style="background:none;border:none;font-size:22px;color:var(--muted);">✕</button>
+    </div>
+
+    <div class="parent-section">
+
+      <!-- TODAY GOALS -->
+      <div class="card-block">
+        <h3>📋 오늘의 목표 설정
+          <span style="font-size:11px;color:var(--muted);font-weight:400;" id="todayDateLabel"></span>
+        </h3>
+        <div id="menuSelectList" class="menu-select-list"></div>
+        <button class="set-btn" onclick="setTodayGoals()">✔ 오늘 목표 저장</button>
+        <div style="margin-top:10px;">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">커스텀 목표 직접 추가</div>
+          <div class="input-row">
+            <input type="text" id="customGoalIcon" placeholder="🎯" style="max-width:52px;text-align:center;" maxlength="2">
+            <input type="text" id="customGoalName" placeholder="목표 이름">
+            <button class="add-btn" onclick="addCustomTodayGoal()">추가</button>
+          </div>
+        </div>
+        <div id="todayGoalPreview" class="tag-list" style="margin-top:8px;"></div>
+      </div>
+
+      <!-- ROUTINE SCHEDULE -->
+      <div class="card-block" style="border-color:#c4b5fd;">
+        <h3>🔁 요일 루틴 자동화
+          <span style="font-size:11px;color:var(--purple-d);font-weight:400;">자정 이후 자동 적용</span>
+        </h3>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">루틴을 등록하면 매주 해당 요일마다 자동으로 오늘의 목표에 추가됩니다.</div>
+        <div class="input-row" style="margin-bottom:4px;">
+          <input type="text" id="rtIcon" placeholder="📚" style="max-width:52px;text-align:center;" maxlength="2">
+          <input type="text" id="rtName" placeholder="루틴 이름 (예: 독서 30분)">
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">반복 요일 선택</div>
+        <div class="day-chips" id="dayChips">
+          <div class="day-chip" data-d="0" onclick="toggleDayChip(this)">일</div>
+          <div class="day-chip" data-d="1" onclick="toggleDayChip(this)">월</div>
+          <div class="day-chip" data-d="2" onclick="toggleDayChip(this)">화</div>
+          <div class="day-chip" data-d="3" onclick="toggleDayChip(this)">수</div>
+          <div class="day-chip" data-d="4" onclick="toggleDayChip(this)">목</div>
+          <div class="day-chip" data-d="5" onclick="toggleDayChip(this)">금</div>
+          <div class="day-chip" data-d="6" onclick="toggleDayChip(this)">토</div>
+          <button onclick="selectAllDays()" style="padding:4px 10px;font-size:11px;font-weight:700;border:1.5px solid var(--amber);background:transparent;color:var(--amber-d);border-radius:10px;margin-left:4px;">매일</button>
+        </div>
+        <button class="add-btn" style="width:100%;margin-top:4px;" onclick="addRoutine()">+ 루틴 추가</button>
+        <div id="routineList" style="margin-top:8px;"></div>
+        <button onclick="applyRoutines(today(),true)" style="width:100%;margin-top:8px;background:var(--purple-l);color:var(--purple-d);border:1.5px solid #c4b5fd;border-radius:10px;padding:8px;font-size:13px;font-weight:700;">↻ 오늘 루틴 지금 바로 적용</button>
+      </div>
+
+      <!-- GOAL MENU -->
+      <div class="card-block">
+        <h3>📚 목표 메뉴 관리</h3>
+        <div class="input-row">
+          <input type="text" id="menuIcon" placeholder="📚" style="max-width:52px;text-align:center;" maxlength="2">
+          <input type="text" id="menuName" placeholder="목표 이름 (예: 수학 문제 풀기)">
+          <button class="add-btn" onclick="addMenuItem()">추가</button>
+        </div>
+        <div id="menuList" class="tag-list"></div>
+      </div>
+
+      <!-- REWARDS -->
+      <div class="card-block">
+        <h3>🎁 보상 관리</h3>
+        <div class="input-row">
+          <input type="text" id="rwIcon" placeholder="🍦" style="max-width:52px;text-align:center;" maxlength="2">
+          <input type="text" id="rwName" placeholder="보상 이름">
+          <input type="number" id="rwCost" placeholder="포인트" style="max-width:80px;">
+          <button class="add-btn" onclick="addReward()">추가</button>
+        </div>
+        <div id="rwList"></div>
+      </div>
+
+      <!-- BONUS SETTINGS -->
+      <div class="card-block">
+        <h3>🎁 보너스 설정</h3>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+          <div>
+            <div style="font-size:14px;font-weight:600;">주간 보너스 (+300pt)</div>
+            <div style="font-size:12px;color:var(--muted);">7일 연속 달성 시 추가 지급</div>
+          </div>
+          <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;">
+            <input type="checkbox" id="toggleWeekly" onchange="toggleBonus('weekly',this.checked)" style="opacity:0;width:0;height:0;position:absolute;">
+            <span id="sliderWeekly" style="position:absolute;inset:0;border-radius:24px;background:var(--border);transition:.2s;cursor:pointer;">
+              <span style="position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s;" id="knobWeekly"></span>
+            </span>
+          </label>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;">
+          <div>
+            <div style="font-size:14px;font-weight:600;">월간 보너스 (+1,000pt)</div>
+            <div style="font-size:12px;color:var(--muted);">한 달 전일 달성 시 추가 지급</div>
+          </div>
+          <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;">
+            <input type="checkbox" id="toggleMonthly" onchange="toggleBonus('monthly',this.checked)" style="opacity:0;width:0;height:0;position:absolute;">
+            <span id="sliderMonthly" style="position:absolute;inset:0;border-radius:24px;background:var(--border);transition:.2s;cursor:pointer;">
+              <span style="position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s;" id="knobMonthly"></span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <!-- MANUAL POINTS -->
+      <div class="card-block" style="border-color:#86efac;">
+        <h3>⭐ 포인트 수동 지급</h3>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">현재 보유: <strong id="currentPtsLabel" style="color:var(--amber-d);"></strong> pt</div>
+        <div class="input-row" style="margin-bottom:8px;">
+          <input type="number" id="grantPts" placeholder="포인트 입력 (음수 가능)" style="flex:2;">
+          <input type="text" id="grantDesc" placeholder="사유 (예: 심부름 도움)" style="flex:3;">
+          <button class="add-btn" style="background:var(--teal);flex-shrink:0;" onclick="givePoints()">지급</button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button onclick="presetGrant(50,'칭찬 보너스')" style="background:#f0fdf4;color:#15803d;border:1.5px solid #86efac;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;">+50</button>
+          <button onclick="presetGrant(100,'특별 포인트')" style="background:#f0fdf4;color:#15803d;border:1.5px solid #86efac;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;">+100</button>
+          <button onclick="presetGrant(200,'특별 포인트')" style="background:#f0fdf4;color:#15803d;border:1.5px solid #86efac;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;">+200</button>
+          <button onclick="presetGrant(500,'특별 포인트')" style="background:#f0fdf4;color:#15803d;border:1.5px solid #86efac;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;">+500</button>
+          <button onclick="presetGrant(-100,'포인트 차감')" style="background:var(--coral-l);color:var(--coral);border:1.5px solid #fca5a5;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;">-100</button>
+        </div>
+      </div>
+
+      <!-- PIN CHANGE -->
+      <div class="card-block">
+        <h3>🔐 PIN 변경</h3>
+        <div class="input-row">
+          <input type="number" id="newPin" placeholder="새 PIN (4자리)" maxlength="4" style="max-width:140px;">
+          <button class="add-btn" onclick="changePin()">변경</button>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="card-block">
+        <h3>📊 통계</h3>
+        <div id="statsView"></div>
+      </div>
+
+      <!-- RESET -->
+      <div class="card-block" style="border-color:var(--coral-l);">
+        <h3 style="color:var(--coral);">⚠️ 포인트 초기화</h3>
+        <button onclick="resetPoints()" style="background:var(--coral-l);color:var(--coral);border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:700;width:100%;">포인트 및 내역 초기화</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- CELEBRATION MODAL -->
+<div id="celebModal" style="display:none;" class="celeb-overlay" onclick="closeCeleb()">
+  <div class="celeb-box" onclick="event.stopPropagation()">
+    <div class="celeb-emoji" id="celebEmoji">🎉</div>
+    <div class="celeb-title" id="celebTitle">미션 완료!</div>
+    <div class="celeb-msg" id="celebMsg">오늘도 정말 잘했어요!</div>
+    <div class="celeb-pts" id="celebPts">+100 포인트 획득!</div>
+    <button class="celeb-close" onclick="closeCeleb()">고마워요! 😊</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
+<div id="confettiWrap" class="confetti-wrap"></div>
+
+<script>
+const COLORS=['#F59E0B','#EF4444','#3B82F6','#22C55E','#8B5CF6','#F97316','#EC4899','#14B8A6'];
+
+// --- DATA ---
+let D={
+  points:0,
+  pin:'1234',
+  useWeeklyBonus:true,
+  useMonthlyBonus:true,
+  routines:[], // {id,icon,name,days:[0~6]} 0=일,1=월,...,6=토
+  lastRoutineDate:'',
+  goalMenu:[], // {id,icon,name}
+  dailyGoals:{}, // date: [{id,icon,name}]
+  completions:{}, // date: [id,...]
+  rewards:[], // {id,icon,name,cost}
+  pointHistory:[], // {date,desc,pts,type}
+  weekBonuses:[], // 'YYYY-Www'
+  monthBonuses:[], // 'YYYY-MM'
+};
+
+function save(){localStorage.setItem('missionApp',JSON.stringify(D));}
+function load(){const s=localStorage.getItem('missionApp');if(s){const d=JSON.parse(s);D={...D,...d};}}
+
+// --- DATE UTILS ---
+function today(){return new Date().toISOString().slice(0,10);}
+function getWeekKey(d){
+  const dt=new Date(d);
+  const y=dt.getFullYear();
+  const start=new Date(y,0,1);
+  const w=Math.ceil(((dt-start)/86400000+start.getDay()+1)/7);
+  return `${y}-W${String(w).padStart(2,'0')}`;
+}
+function getMonthKey(d){return d.slice(0,7);}
+function getDaysInMonth(d){const dt=new Date(d);return new Date(dt.getFullYear(),dt.getMonth()+1,0).getDate();}
+function getWeekDates(d){
+  const dt=new Date(d);
+  const day=dt.getDay();
+  const mon=new Date(dt);mon.setDate(dt.getDate()-(day===0?6:day-1));
+  const dates=[];
+  for(let i=0;i<7;i++){const nd=new Date(mon);nd.setDate(mon.getDate()+i);dates.push(nd.toISOString().slice(0,10));}
+  return dates;
+}
+
+// --- INIT ---
+load();
+if(!D.goalMenu.length){
+  D.goalMenu=[
+    {id:'m1',icon:'📚',name:'독서 30분'},
+    {id:'m2',icon:'✏️',name:'수학 문제 풀기'},
+    {id:'m3',icon:'🎵',name:'피아노 연습'},
+    {id:'m4',icon:'🏃',name:'운동하기'},
+    {id:'m5',icon:'🎨',name:'그림 그리기'},
+    {id:'m6',icon:'🔤',name:'영어 단어 외우기'},
+  ];
+  save();
+}
+
+// --- TABS ---
+const screens=['screenMission','screenShop','screenHistory'];
+function showTab(i){
+  screens.forEach((s,j)=>{
+    document.getElementById(s).className='screen'+(j===i?' on':'');
+    document.getElementById('bn'+j).className='bnav-btn'+(j===i?' on':'');
+  });
+  if(i===1)renderShop();
+  if(i===2)renderHistory();
+}
+
+// --- RENDER MISSION ---
+function renderMission(){
+  const td=today();
+  const goals=D.dailyGoals[td]||[];
+  const comps=D.completions[td]||[];
+  const pts=D.points;
+
+  document.getElementById('heroPoints').textContent=pts.toLocaleString();
+  document.getElementById('navPoints').textContent='⭐ '+pts.toLocaleString();
+  document.getElementById('shopPoints').textContent=pts.toLocaleString();
+
+  // badges
+  document.getElementById('todayBadge').textContent=`오늘 ${comps.length}/${goals.length}`;
+
+  // week progress
+  const wDates=getWeekDates(td);
+  const wDone=wDates.filter(d=>{
+    const g=D.dailyGoals[d]||[];
+    const c=D.completions[d]||[];
+    return g.length>0&&g.every(g2=>c.includes(g2.id));
+  });
+  document.getElementById('weekBadge').textContent=`이번 주 ${wDone.length}/7`;
+
+  // month progress
+  const mKey=getMonthKey(td);
+  const mDays=getDaysInMonth(td);
+  const mDone=Object.keys(D.dailyGoals).filter(d=>{
+    if(getMonthKey(d)!==mKey)return false;
+    const g=D.dailyGoals[d]||[];
+    const c=D.completions[td]||D.completions[d]||[];
+    return g.length>0&&g.every(g2=>c.includes(g2.id));
+  });
+  document.getElementById('monthBadge').textContent=`이번 달 ${mDone.length}일`;
+
+  // bonus cards
+  const wKey=getWeekKey(td);
+  const wBonusDone=D.weekBonuses.includes(wKey);
+  const mBonusDone=D.monthBonuses.includes(mKey);
+
+  const bonusSection=document.getElementById('bonusSection');
+  bonusSection.style.display=(D.useWeeklyBonus||D.useMonthlyBonus)?'grid':'none';
+
+  const wBCard=document.getElementById('weekBonus');
+  wBCard.style.display=D.useWeeklyBonus?'block':'none';
+  wBCard.className='bonus-card'+(wBonusDone?' done-bonus':wDone.length>=7?' unlocked':'');
+  document.getElementById('weekProgText').textContent=wBonusDone?'✔ 획득완료!':wDone.length+'/7일';
+
+  const mBCard=document.getElementById('monthBonus');
+  mBCard.style.display=D.useMonthlyBonus?'block':'none';
+  mBCard.className='bonus-card'+(mBonusDone?' done-bonus':mDone.length>=mDays?' unlocked':'');
+  document.getElementById('monthProgText').textContent=mBonusDone?'✔ 획득완료!':mDone.length+'/'+mDays+'일';
+
+  // complete banner
+  const allDone=goals.length>0&&goals.every(g=>comps.includes(g.id));
+  const cb=document.getElementById('completeBanner');
+  if(allDone){
+    cb.style.display='block';
+    cb.innerHTML='<div class="complete-banner"><h3>🎉 오늘 미션 완료!</h3><p>+100 포인트 획득했어요!</p></div>';
+  } else {
+    cb.style.display='none';
+  }
+
+  // goal list
+  const gl=document.getElementById('goalList');
+  if(!goals.length){
+    gl.innerHTML='<div class="empty-msg">📋 오늘 설정된 목표가 없어요.<br><span style="font-size:12px;">부모님께 목표를 설정해달라고 하세요!</span></div>';
+    return;
+  }
+  gl.innerHTML=goals.map(g=>{
+    const done=comps.includes(g.id);
+    const isRoutine=D.routines.some(r=>r.id===g.routineId||g.id.startsWith('rt-'));
+    return `<div class="goal-card${done?' done':''}" id="gc-${g.id}">
+      <div class="goal-icon">${g.icon||'🎯'}</div>
+      <div class="goal-text">
+        <div class="goal-name">${g.name}${isRoutine?` <span class="auto-badge">🔁 루틴</span>`:''}</div>
+        <div class="goal-pts">완료 시 하루 목표에 포함</div>
+      </div>
+      <button class="goal-check" onclick="toggleGoal('${g.id}')">${done?'✓':''}</button>
+    </div>`;
+  }).join('');
+}
+
+function toggleGoal(id){
+  const td=today();
+  if(!D.completions[td])D.completions[td]=[];
+  const comps=D.completions[td];
+  const goals=D.dailyGoals[td]||[];
+  const wasDone=comps.includes(id);
+
+  if(wasDone){
+    // 취소: 이미 보너스 받은 경우 되돌리기
+    D.completions[td]=comps.filter(c=>c!==id);
+    // 만약 오늘 일일 포인트 받은 적 있으면 취소
+    const todayPtsIdx=D.pointHistory.findLastIndex?.(h=>h.date===td&&h.type==='daily');
+    if(todayPtsIdx>-1&&comps.length===goals.length){
+      D.points-=100;
+      D.pointHistory.splice(todayPtsIdx,1);
+    }
+    save();renderMission();
+    showToast('미션 취소됨');
+    return;
+  }
+
+  D.completions[td].push(id);
+  const newComps=D.completions[td];
+  const allDone=goals.length>0&&goals.every(g=>newComps.includes(g.id));
+
+  if(allDone){
+    // daily bonus
+    const alreadyDaily=D.pointHistory.some(h=>h.date===td&&h.type==='daily');
+    if(!alreadyDaily){
+      D.points+=100;
+      D.pointHistory.unshift({date:td,desc:'오늘 미션 완료!',pts:100,type:'daily'});
+      showCelebration();
+    }
+
+    // weekly bonus
+    const wKey=getWeekKey(td);
+    if(D.useWeeklyBonus&&!D.weekBonuses.includes(wKey)){
+      const wDates=getWeekDates(td);
+      const wDone=wDates.filter(d=>{
+        const g=D.dailyGoals[d]||[];
+        const c=D.completions[d]||[];
+        return g.length>0&&g.every(g2=>c.includes(g2.id));
+      });
+      if(wDone.length>=7){
+        D.points+=300;
+        D.weekBonuses.push(wKey);
+        D.pointHistory.unshift({date:td,desc:'🌟 주간 미션 완료 보너스!',pts:300,type:'weekly'});
+        setTimeout(()=>showToast('🌟 주간 보너스 +300!'),800);
+      }
+    }
+
+    // monthly bonus
+    const mKey=getMonthKey(td);
+    if(D.useMonthlyBonus&&!D.monthBonuses.includes(mKey)){
+      const mDays=getDaysInMonth(td);
+      const mDone=Object.keys(D.dailyGoals).filter(d=>{
+        if(getMonthKey(d)!==mKey)return false;
+        const g=D.dailyGoals[d]||[];
+        const c=D.completions[d]||[];
+        return g.length>0&&g.every(g2=>c.includes(g2.id));
+      });
+      if(mDone.length>=mDays){
+        D.points+=1000;
+        D.monthBonuses.push(mKey);
+        D.pointHistory.unshift({date:td,desc:'🏆 월간 미션 완료 보너스!',pts:1000,type:'monthly'});
+        setTimeout(()=>showToast('🏆 월간 보너스 +1,000!'),1200);
+      }
+    }
+  } else {
+    showToast('✔ 미션 완료!');
+  }
+
+  save();renderMission();
+}
+
+// --- SHOP ---
+function renderShop(){
+  document.getElementById('shopPoints').textContent=(D.points||0).toLocaleString();
+  const rg=document.getElementById('rewardGrid');
+  if(!D.rewards.length){
+    rg.innerHTML='<div class="empty-msg" style="grid-column:1/-1;">🎁 보상이 없어요.<br><span style="font-size:12px;">부모님이 보상을 추가해주세요!</span></div>';
+  } else {
+    rg.innerHTML=D.rewards.map(r=>`
+      <div class="reward-card">
+        <div class="reward-icon">${r.icon||'🎁'}</div>
+        <div class="reward-name">${r.name}</div>
+        <div class="reward-cost">⭐ ${r.cost.toLocaleString()} pt</div>
+        <button class="buy-btn" ${D.points<r.cost?'disabled':''} onclick="buyReward('${r.id}')">
+          ${D.points>=r.cost?'구매하기':'포인트 부족'}
+        </button>
+      </div>`).join('');
+  }
+
+  const ph=document.getElementById('purchaseHist');
+  const purchases=D.pointHistory.filter(h=>h.type==='purchase');
+  if(!purchases.length){ph.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:16px;">구매 내역이 없어요.</div>';return;}
+  ph.innerHTML=purchases.map(p=>`
+    <div class="hist-item">
+      <div class="hist-icon">🛍</div>
+      <div class="hist-text"><strong>${p.desc}</strong><br><span style="font-size:11px;color:var(--muted);">${p.date}</span></div>
+      <div class="hist-pts" style="color:var(--coral);">-${p.pts.toLocaleString()}</div>
+    </div>`).join('');
+}
+
+function buyReward(id){
+  const r=D.rewards.find(x=>x.id===id);
+  if(!r||D.points<r.cost)return;
+  if(!confirm(`"${r.name}"을 구매할까요? (${r.cost.toLocaleString()}pt 사용)`))return;
+  D.points-=r.cost;
+  D.pointHistory.unshift({date:today(),desc:r.icon+' '+r.name,pts:r.cost,type:'purchase'});
+  save();renderShop();
+  document.getElementById('heroPoints').textContent=D.points.toLocaleString();
+  document.getElementById('navPoints').textContent='⭐ '+D.points.toLocaleString();
+  showToast('🎁 구매 완료!');
+  confetti();
+}
+
+// --- HISTORY ---
+function renderHistory(){
+  const hl=document.getElementById('histList');
+  if(!D.pointHistory.length){hl.innerHTML='<div class="empty-msg">내역이 없어요.</div>';return;}
+  hl.innerHTML=D.pointHistory.slice(0,50).map(h=>{
+    const isPurchase=h.type==='purchase';
+    const isDeduct=h.type==='deduct';
+    const icon=h.type==='purchase'?'🛍':h.type==='daily'?'✅':h.type==='weekly'?'🌟':h.type==='monthly'?'🏆':h.type==='grant'?'⭐':'➖';
+    const color=isPurchase||isDeduct?'var(--coral)':'var(--teal)';
+    const sign=isPurchase||isDeduct?'-':'+';
+    return `<div class="hist-item">
+      <div class="hist-icon">${icon}</div>
+      <div class="hist-text"><strong>${h.desc}</strong><br><span style="font-size:11px;color:var(--muted);">${h.date}</span></div>
+      <div class="hist-pts" style="color:${color};">${sign}${h.pts.toLocaleString()}</div>
+    </div>`;
+  }).join('');
+}
+
+// --- PARENT ---
+let pinBuffer='';
+function openParent(){pinBuffer='';updatePinDots();document.getElementById('pinErr').textContent='';document.getElementById('parentModal').style.display='flex';}
+function closeModal(id){document.getElementById(id).style.display='none';}
+function pinInput(v){
+  if(v==='del'){pinBuffer=pinBuffer.slice(0,-1);}
+  else if(v==='ok'){checkPin();}
+  else if(pinBuffer.length<4){pinBuffer+=v;}
+  updatePinDots();
+  if(pinBuffer.length===4)setTimeout(checkPin,100);
+}
+function updatePinDots(){
+  document.querySelectorAll('.pin-dot').forEach((d,i)=>d.className='pin-dot'+(i<pinBuffer.length?' filled':''));
+}
+function checkPin(){
+  if(pinBuffer===D.pin){
+    closeModal('parentModal');
+    openParentPanel();
+  } else {
+    document.getElementById('pinErr').textContent='PIN이 틀렸어요.';
+    pinBuffer='';updatePinDots();
+  }
+}
+
+function syncToggleUI(){
+  ['Weekly','Monthly'].forEach(k=>{
+    const on=k==='Weekly'?D.useWeeklyBonus:D.useMonthlyBonus;
+    const cb=document.getElementById('toggle'+k);
+    if(cb)cb.checked=on;
+    const sl=document.getElementById('slider'+k);
+    const kn=document.getElementById('knob'+k);
+    if(sl)sl.style.background=on?'var(--teal)':'var(--border)';
+    if(kn)kn.style.left=on?'23px':'3px';
+  });
+}
+
+function toggleBonus(type,val){
+  if(type==='weekly')D.useWeeklyBonus=val;
+  else D.useMonthlyBonus=val;
+  save();syncToggleUI();renderMission();
+  showToast((type==='weekly'?'주간':'월간')+' 보너스 '+(val?'켜짐':'꺼짐'));
+}
+
+function openParentPanel(){
+  document.getElementById('todayDateLabel').textContent=today();
+  document.getElementById('currentPtsLabel').textContent=(D.points||0).toLocaleString();
+  renderMenuSelectList();
+  renderMenuList();
+  renderRoutineList();
+  renderRwList();
+  renderStats();
+  renderTodayPreview();
+  syncToggleUI();
+  document.getElementById('parentPanel').style.display='flex';
+}
+
+function renderMenuSelectList(){
+  const td=today();
+  const current=D.dailyGoals[td]||[];
+  const currentIds=current.map(g=>g.id);
+  const ml=document.getElementById('menuSelectList');
+  if(!D.goalMenu.length){ml.innerHTML='<div style="padding:12px;font-size:13px;color:var(--muted);">목표 메뉴를 먼저 추가하세요</div>';return;}
+  ml.innerHTML=D.goalMenu.map(m=>`
+    <label class="menu-sel-item">
+      <input type="checkbox" data-id="${m.id}" ${currentIds.includes(m.id)?'checked':''}>
+      <span>${m.icon||'🎯'}</span>
+      <span>${m.name}</span>
+    </label>`).join('');
+}
+
+function renderTodayPreview(){
+  const td=today();
+  const goals=D.dailyGoals[td]||[];
+  const tp=document.getElementById('todayGoalPreview');
+  tp.innerHTML=goals.map(g=>`<div class="tag">${g.icon} ${g.name}<button class="tag-del" onclick="removeTodayGoal('${g.id}')">✕</button></div>`).join('');
+}
+
+function setTodayGoals(){
+  const td=today();
+  const checks=document.querySelectorAll('#menuSelectList input[type=checkbox]:checked');
+  const ids=[...checks].map(c=>c.dataset.id);
+  const selected=D.goalMenu.filter(m=>ids.includes(m.id));
+  // keep custom goals (not in menu)
+  const menuIds=D.goalMenu.map(m=>m.id);
+  const existing=D.dailyGoals[td]||[];
+  const customs=existing.filter(g=>!menuIds.includes(g.id));
+  D.dailyGoals[td]=[...selected,...customs];
+  // reset completions for removed goals
+  const newIds=D.dailyGoals[td].map(g=>g.id);
+  if(D.completions[td])D.completions[td]=D.completions[td].filter(id=>newIds.includes(id));
+  save();renderTodayPreview();renderMission();showToast('오늘 목표 저장됨!');
+}
+
+function addCustomTodayGoal(){
+  const icon=document.getElementById('customGoalIcon').value.trim()||'🎯';
+  const name=document.getElementById('customGoalName').value.trim();
+  if(!name)return;
+  const td=today();
+  if(!D.dailyGoals[td])D.dailyGoals[td]=[];
+  const id='c'+Date.now();
+  D.dailyGoals[td].push({id,icon,name});
+  document.getElementById('customGoalName').value='';
+  document.getElementById('customGoalIcon').value='';
+  save();renderTodayPreview();renderMission();
+}
+
+function removeTodayGoal(id){
+  const td=today();
+  D.dailyGoals[td]=(D.dailyGoals[td]||[]).filter(g=>g.id!==id);
+  if(D.completions[td])D.completions[td]=D.completions[td].filter(c=>c!==id);
+  save();renderTodayPreview();renderMission();
+}
+
+function renderMenuList(){
+  const ml=document.getElementById('menuList');
+  ml.innerHTML=D.goalMenu.map(m=>`
+    <div class="tag">${m.icon} ${m.name}<button class="tag-del" onclick="delMenuItem('${m.id}')">✕</button></div>`).join('');
+}
+
+function addMenuItem(){
+  const icon=document.getElementById('menuIcon').value.trim()||'🎯';
+  const name=document.getElementById('menuName').value.trim();
+  if(!name)return;
+  D.goalMenu.push({id:'m'+Date.now(),icon,name});
+  document.getElementById('menuName').value='';
+  document.getElementById('menuIcon').value='';
+  save();renderMenuList();renderMenuSelectList();
+}
+
+function delMenuItem(id){
+  D.goalMenu=D.goalMenu.filter(m=>m.id!==id);
+  save();renderMenuList();renderMenuSelectList();
+}
+
+function renderRwList(){
+  const rl=document.getElementById('rwList');
+  if(!D.rewards.length){rl.innerHTML='<div style="font-size:13px;color:var(--muted);padding:8px 0;">보상이 없어요.</div>';return;}
+  rl.innerHTML=D.rewards.map(r=>`
+    <div class="rw-item">
+      <span style="font-size:20px;">${r.icon}</span>
+      <span style="flex:1;font-size:14px;font-weight:600;">${r.name}</span>
+      <span style="font-size:13px;color:var(--amber-d);font-weight:600;margin-right:8px;">⭐${r.cost}</span>
+      <button class="rw-del" onclick="delReward('${r.id}')">삭제</button>
+    </div>`).join('');
+}
+
+function addReward(){
+  const icon=document.getElementById('rwIcon').value.trim()||'🎁';
+  const name=document.getElementById('rwName').value.trim();
+  const cost=parseInt(document.getElementById('rwCost').value)||0;
+  if(!name||!cost)return;
+  D.rewards.push({id:'r'+Date.now(),icon,name,cost});
+  document.getElementById('rwName').value='';
+  document.getElementById('rwIcon').value='';
+  document.getElementById('rwCost').value='';
+  save();renderRwList();
+}
+
+function delReward(id){
+  D.rewards=D.rewards.filter(r=>r.id!==id);
+  save();renderRwList();
+}
+
+function changePin(){
+  const np=document.getElementById('newPin').value.trim();
+  if(np.length!==4||isNaN(np)){showToast('4자리 숫자로 입력하세요');return;}
+  D.pin=np;save();document.getElementById('newPin').value='';showToast('PIN 변경됨!');
+}
+
+function renderStats(){
+  const sv=document.getElementById('statsView');
+  const totalEarned=D.pointHistory.filter(h=>h.type!=='purchase').reduce((a,h)=>a+h.pts,0);
+  const totalSpent=D.pointHistory.filter(h=>h.type==='purchase').reduce((a,h)=>a+h.pts,0);
+  const streak=calcStreak();
+  sv.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div style="background:#fafaf9;border-radius:10px;padding:10px;text-align:center;">
+        <div style="font-size:20px;font-weight:800;color:var(--teal);">${totalEarned.toLocaleString()}</div>
+        <div style="font-size:11px;color:var(--muted);">총 획득 포인트</div>
+      </div>
+      <div style="background:#fafaf9;border-radius:10px;padding:10px;text-align:center;">
+        <div style="font-size:20px;font-weight:800;color:var(--coral);">${totalSpent.toLocaleString()}</div>
+        <div style="font-size:11px;color:var(--muted);">총 사용 포인트</div>
+      </div>
+      <div style="background:#fafaf9;border-radius:10px;padding:10px;text-align:center;">
+        <div style="font-size:20px;font-weight:800;color:var(--amber-d);">${streak}</div>
+        <div style="font-size:11px;color:var(--muted);">연속 달성일 🔥</div>
+      </div>
+      <div style="background:#fafaf9;border-radius:10px;padding:10px;text-align:center;">
+        <div style="font-size:20px;font-weight:800;color:var(--purple);">${D.weekBonuses.length}</div>
+        <div style="font-size:11px;color:var(--muted);">주간 보너스 횟수</div>
+      </div>
+    </div>`;
+}
+
+function calcStreak(){
+  let streak=0;
+  let dt=new Date(today());
+  while(true){
+    const ds=dt.toISOString().slice(0,10);
+    const g=D.dailyGoals[ds]||[];
+    const c=D.completions[ds]||[];
+    if(g.length>0&&g.every(gx=>c.includes(gx.id))){streak++;dt.setDate(dt.getDate()-1);}
+    else break;
+  }
+  return streak;
+}
+
+function resetPoints(){
+  if(!confirm('포인트와 내역을 초기화할까요?'))return;
+  D.points=0;D.pointHistory=[];D.weekBonuses=[];D.monthBonuses=[];D.completions={};
+  save();renderMission();renderStats();showToast('초기화 완료');
+}
+
+// --- TOAST ---
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast show';
+  setTimeout(()=>t.className='toast',2000);
+}
+
+// --- CONFETTI ---
+function confetti(){
+  const wrap=document.getElementById('confettiWrap');
+  wrap.innerHTML='';
+  for(let i=0;i<30;i++){
+    const c=document.createElement('div');
+    c.className='cf';
+    c.style.cssText=`left:${Math.random()*100}%;top:-10px;background:${COLORS[i%COLORS.length]};animation-delay:${Math.random()*0.5}s;animation-duration:${1+Math.random()}s;transform:rotate(${Math.random()*360}deg);`;
+    wrap.appendChild(c);
+  }
+  setTimeout(()=>wrap.innerHTML='',2500);
+}
+
+// --- ROUTINE SCHEDULER ---
+const DAY_NAMES=['일','월','화','수','목','금','토'];
+
+function applyRoutines(dateStr, manual=false){
+  if(!D.routines.length) return;
+  const dt=new Date(dateStr);
+  const dow=dt.getDay(); // 0=Sun
+  const applicable=D.routines.filter(r=>r.days.includes(dow));
+  if(!applicable.length){if(manual)showToast('오늘 해당하는 루틴이 없어요');return;}
+
+  if(!D.dailyGoals[dateStr]) D.dailyGoals[dateStr]=[];
+  const existing=D.dailyGoals[dateStr];
+  const existingIds=existing.map(g=>g.id);
+
+  let added=0;
+  applicable.forEach(r=>{
+    const gid='rt-'+r.id+'-'+dateStr;
+    if(!existingIds.includes(gid)){
+      existing.push({id:gid,icon:r.icon,name:r.name,routineId:r.id});
+      added++;
+    }
+  });
+
+  D.lastRoutineDate=dateStr;
+  save();
+  if(added>0){
+    renderMission();
+    if(manual||added>0) showToast(`🔁 루틴 ${added}개 자동 적용!`);
+  } else {
+    if(manual) showToast('루틴이 이미 모두 적용되어 있어요');
+  }
+}
+
+function checkDateChange(){
+  const td=today();
+  if(D.lastRoutineDate!==td) applyRoutines(td);
+}
+
+// Run on visibility restore (tab switch back, phone wake)
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkDateChange();});
+// Periodic check every 60s
+setInterval(checkDateChange,60000);
+
+// --- ROUTINE UI ---
+function toggleDayChip(el){el.classList.toggle('on');}
+function selectAllDays(){
+  document.querySelectorAll('#dayChips .day-chip').forEach(c=>c.classList.add('on'));
+}
+function getSelectedDays(){
+  return [...document.querySelectorAll('#dayChips .day-chip.on')].map(c=>parseInt(c.dataset.d));
+}
+
+function addRoutine(){
+  const icon=document.getElementById('rtIcon').value.trim()||'🎯';
+  const name=document.getElementById('rtName').value.trim();
+  const days=getSelectedDays();
+  if(!name){showToast('루틴 이름을 입력하세요');return;}
+  if(!days.length){showToast('반복 요일을 선택하세요');return;}
+  D.routines.push({id:'r'+Date.now(),icon,name,days});
+  document.getElementById('rtName').value='';
+  document.getElementById('rtIcon').value='';
+  document.querySelectorAll('#dayChips .day-chip').forEach(c=>c.classList.remove('on'));
+  save();renderRoutineList();
+  showToast('루틴 추가됨!');
+}
+
+function delRoutine(id){
+  D.routines=D.routines.filter(r=>r.id!==id);
+  // also remove from today if not yet completed
+  const td=today();
+  const gid='rt-'+id+'-'+td;
+  if(D.dailyGoals[td]) D.dailyGoals[td]=D.dailyGoals[td].filter(g=>g.id!==gid);
+  if(D.completions[td]) D.completions[td]=D.completions[td].filter(c=>c!==gid);
+  save();renderRoutineList();renderMission();
+}
+
+function renderRoutineList(){
+  const rl=document.getElementById('routineList');
+  if(!D.routines.length){rl.innerHTML='<div style="font-size:13px;color:var(--muted);padding:8px 0;text-align:center;">등록된 루틴이 없어요</div>';return;}
+  rl.innerHTML=D.routines.map(r=>{
+    const isAll=r.days.length===7;
+    const dayLabels=isAll
+      ?'<span class="rdchip everyday">매일</span>'
+      :r.days.sort((a,b)=>a-b).map(d=>`<span class="rdchip">${DAY_NAMES[d]}</span>`).join('');
+    return `<div class="routine-item">
+      <span style="font-size:20px;">${r.icon}</span>
+      <div style="flex:1;">
+        <div style="font-size:14px;font-weight:600;">${r.name}</div>
+        <div class="routine-days">${dayLabels}</div>
+      </div>
+      <button class="rw-del" onclick="delRoutine('${r.id}')">삭제</button>
+    </div>`;
+  }).join('');
+}
+
+// --- CELEBRATION ---
+const CELEB_MSGS=[
+  {emoji:'🎉',title:'완벽해요!',msg:'오늘 미션을 전부 해냈어요!\n정말 대단한걸요? 👏'},
+  {emoji:'🌟',title:'최고예요!',msg:'오늘도 포기하지 않았군요!\n내일도 이렇게 할 수 있어요!'},
+  {emoji:'🏆',title:'챔피언!',msg:'이렇게 열심히 하는 모습이\n너무 멋있어요!'},
+  {emoji:'🚀',title:'쏴올라가요!',msg:'오늘 목표 달성! 이 기세로\n계속 나아가 봐요!'},
+  {emoji:'🦁',title:'용감해요!',msg:'어렵더라도 끝까지 해내는\n진짜 용기 있는 어린이예요!'},
+  {emoji:'🌈',title:'빛나요!',msg:'오늘 하루도 눈부시게\n빛났어요. 정말 자랑스러워요!'},
+  {emoji:'🎯',title:'명중!',msg:'오늘의 목표를 정확하게\n전부 맞혔어요! 훌륭해요!'},
+  {emoji:'🌸',title:'활짝 피었어요!',msg:'꾸준히 하다 보면 멋진\n꽃이 피어난답니다. 잘하고 있어요!'},
+  {emoji:'💎',title:'다이아몬드!',msg:'이렇게 열심히 하는 어린이는\n정말 귀한 보석 같아요!'},
+  {emoji:'⚡',title:'번쩍번쩍!',msg:'오늘 에너지 넘치게\n미션을 완수했어요!'},
+];
+
+function showCelebration(extraMsg=''){
+  const c=CELEB_MSGS[Math.floor(Math.random()*CELEB_MSGS.length)];
+  document.getElementById('celebEmoji').textContent=c.emoji;
+  document.getElementById('celebTitle').textContent=c.title;
+  document.getElementById('celebMsg').textContent=c.msg+(extraMsg?'\n'+extraMsg:'');
+  document.getElementById('celebPts').textContent='+100 포인트 획득!';
+  document.getElementById('celebModal').style.display='flex';
+  confetti();
+}
+
+function closeCeleb(){
+  document.getElementById('celebModal').style.display='none';
+}
+
+// --- MANUAL POINTS ---
+function givePoints(){
+  const pts=parseInt(document.getElementById('grantPts').value);
+  const desc=document.getElementById('grantDesc').value.trim()||'부모 지급';
+  if(!pts||isNaN(pts)){showToast('포인트를 입력하세요');return;}
+  const newTotal=D.points+pts;
+  if(newTotal<0){if(!confirm(`포인트가 ${Math.abs(newTotal)} 부족해요. 0으로 만들까요?`))return;D.points=0;}
+  else D.points=newTotal;
+  D.pointHistory.unshift({date:today(),desc:'⭐ '+desc,pts:Math.abs(pts),type:pts>0?'grant':'deduct'});
+  save();
+  document.getElementById('grantPts').value='';
+  document.getElementById('grantDesc').value='';
+  document.getElementById('currentPtsLabel').textContent=D.points.toLocaleString();
+  renderMission();
+  showToast((pts>0?'+':'')+pts+' 포인트 지급 완료!');
+}
+
+function presetGrant(pts,desc){
+  document.getElementById('grantPts').value=pts;
+  document.getElementById('grantDesc').value=desc;
+  givePoints();
+}
+
+// --- BOOT ---
+checkDateChange();
+renderMission();
+</script>
+</body>
+</html>
